@@ -101,22 +101,10 @@ export function useFlowerModel() {
       // Preprocess on the GPU (resize + normalize)
       const inputTensor = preprocessImage(img);
 
-      // Run inference
-      let output: tf.Tensor | { predictions: tf.Tensor };
-      try {
-        output = model.predict(inputTensor) as tf.Tensor | { predictions: tf.Tensor };
-        if (!(output instanceof tf.Tensor) && !output.predictions) {
-          const exeResult = await model.executeAsync({ x: inputTensor }) as tf.Tensor | { predictions: tf.Tensor };
-          output = exeResult;
-        }
-      } catch (e) {
-        console.error("predict() failed, trying executeAsync:", e);
-        output = await model.executeAsync({ x: inputTensor }) as tf.Tensor | { predictions: tf.Tensor };
-      }
-      const prediction: tf.Tensor =
-        output instanceof tf.Tensor
-          ? output
-          : output.predictions;
+      // Run inference directly with executeAsync (avoids predict()'s image input validation)
+      const output = await model.executeAsync({ x: inputTensor });
+      const prediction = Array.isArray(output) ? output[0] : output;
+
       const predictionData = Array.from(await prediction.data());
 
       // Sort results by confidence (descending)
