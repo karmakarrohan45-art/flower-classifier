@@ -5,7 +5,7 @@
 
 .prediction-header h2 {
   margin: 0 0 1rem 0;
-  color: #2d3741;
+  color: var(--text-primary);
   font-size: 1.75rem;
 }
 
@@ -16,7 +16,7 @@
 .predicted-name {
   font-size: 2rem;
   font-weight: 700;
-  color: #2b6cb0;
+  color: var(--accent);
   margin-bottom: 1rem;
   text-transform: capitalize;
 }
@@ -25,7 +25,7 @@
   width: 100%;
   max-width: 400px;
   margin: 0 auto;
-  background-color: #e2e8f0;
+  background-color: var(--border-color);
   border-radius: 10px;
   overflow: hidden;
   height: 28px;
@@ -34,7 +34,7 @@
 
 .confidence-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #48bb78, #38a169);
+  background: linear-gradient(90deg, var(--success), var(--success-dark));
   border-radius: 10px;
   transition: width 0.5s ease;
   min-width: 2px;
@@ -47,7 +47,7 @@
   transform: translate(-50%, -50%);
   font-size: 0.8rem;
   font-weight: 700;
-  color: #2d3741;
+  color: var(--text-primary);
   white-space: nowrap;
 }
 
@@ -60,7 +60,7 @@
 
 .all-predictions h3 {
   font-size: 0.9rem;
-  color: #718096;
+  color: var(--text-tertiary);
   margin: 0 0 0.5rem 0;
 }
 
@@ -68,7 +68,7 @@
   display: flex;
   justify-content: space-between;
   padding: 0.25rem 0;
-  border-bottom: 1px solid #edf2f7;
+  border-bottom: 1px solid var(--border-color);
   font-size: 0.9rem;
 }
 
@@ -81,14 +81,14 @@
   max-width: 400px;
   margin: 0 auto 1.5rem;
   text-align: left;
-  background: #f7fafc;
+  background: var(--metadata-bg);
   border-radius: 8px;
   padding: 1rem;
 }
 
 .metadata-section h3 {
   margin: 0 0 0.75rem 0;
-  color: #2d3741;
+  color: var(--text-primary);
   font-size: 1.1rem;
 }
 
@@ -96,7 +96,7 @@
   display: flex;
   justify-content: space-between;
   padding: 0.3rem 0;
-  border-bottom: 1px solid #edf2f7;
+  border-bottom: 1px solid var(--border-color);
   font-size: 0.85rem;
 }
 
@@ -105,17 +105,17 @@
 }
 
 .metadata-label {
-  color: #718096;
+  color: var(--text-tertiary);
   font-weight: 600;
 }
 
 .metadata-value {
-  color: #2d3741;
+  color: var(--text-primary);
   text-align: right;
 }
 
 .reset-button {
-  background-color: #4299e1;
+  background-color: var(--accent);
   color: white;
   border: none;
   padding: 0.6rem 1.5rem;
@@ -127,7 +127,7 @@
 }
 
 .reset-button:hover {
-  background-color: #3182ce;
+  background-color: var(--accent-hover);
 }
 
 @media (max-width: 600px) {
