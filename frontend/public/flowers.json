@@ -1,0 +1,67 @@
+{
+  "daisy": {
+    "name": "Daisy",
+    "scientific_name": "Bellis perennis",
+    "height (cm)": "15-60",
+    "longevity (years)": "3-5",
+    "place of origin": "Europe, Asia",
+    "color": "White, yellow",
+    "climate": "Temperate",
+    "cut flowers": "1",
+    "perfumes": "0",
+    "medicine": "1",
+    "average number of petals": "10-20"
+  },
+  "dandelion": {
+    "name": "Dandelion",
+    "scientific_name": "Taraxacum officinale",
+    "height (cm)": "20-40",
+    "longevity (years)": "3-10",
+    "place of origin": "Europe, Asia",
+    "color": "Yellow",
+    "climate": "Temperate",
+    "cut flowers": "1",
+    "perfumes": "0",
+    "medicine": "1",
+    "average number of petals": "5-10"
+  },
+  "roses": {
+    "name": "Rose",
+    "scientific_name": "Rosa spp.",
+    "height (cm)": "60-150",
+    "longevity (years)": "3-10",
+    "place of origin": "Europe, Asia, North America",
+    "color": "Red, pink, white",
+    "climate": "Temperate",
+    "cut flowers": "1",
+    "perfumes": "1",
+    "medicine": "1",
+    "average number of petals": "5-9"
+  },
+  "sunflowers": {
+    "name": "Sunflower",
+    "scientific_name": "Helianthus annuus",
+    "height (cm)": "50-300",
+    "longevity (years)": "1-2",
+    "place of origin": "North America",
+    "color": "Yellow, orange",
+    "climate": "Temperate to tropical",
+    "cut flowers": "1",
+    "perfumes": "0",
+    "medicine": "1",
+    "average number of petals": "10-20"
+  },
+  "tulips": {
+    "name": "Tulip",
+    "scientific_name": "Tulipa spp.",
+    "height (cm)": "20-70",
+    "longevity (years)": "3-5",
+    "place of origin": "Central Asia",
+    "color": "Red, pink, white",
+    "climate": "Temperate",
+    "cut flowers": "1",
+    "perfumes": "0",
+    "medicine": "1",
+    "average number of petals": "3-7"
+  }
+}
