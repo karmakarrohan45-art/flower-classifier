@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import * as tf from "@tensorflow/tfjs";
 import type { Prediction, FlowerMetadata } from "../types";
 
-const MODEL_URL = "/model/model.json?v=2";
+const MODEL_URL = "/model/model.json?v=3";
 const LABELS_URL = "/model/labels.json";
 const FLOWERS_URL = "/flowers.json";
 const IMAGE_SIZE = 180;
@@ -13,8 +13,8 @@ const METADATA_KEY_MAP: Record<string, string> = {
   sunflowers: "sunflower",
   tulips: "tulip",
 };
-const CONFIDENCE_THRESHOLD = 0.75;
-const MARGIN_THRESHOLD = 0.05;
+const CONFIDENCE_THRESHOLD = 0.65;
+const MARGIN_THRESHOLD = 0.04;
 
 async function loadHtmlImage(dataUrl: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {

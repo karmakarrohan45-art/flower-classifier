@@ -36,8 +36,8 @@ import seaborn as sns
 NUM_CLASSES = 5
 IMAGE_SIZE = 180
 BATCH_SIZE = 32
-HEAD_EPOCHS = 8
-FINE_TUNE_EPOCHS = 12
+HEAD_EPOCHS = 15
+FINE_TUNE_EPOCHS = 25
 AUTOTUNE = tf.data.AUTOTUNE
 MODEL_DIR = "model"
 TFDS_DIR = "dataset"
@@ -70,12 +70,18 @@ def preprocess(image, label):
 
 
 def augment(image, label):
-    """Apply random flips, zoom, and color jittering for data augmentation."""
+    """Apply random flips, rotation, and color jittering for robustness."""
     image = tf.image.random_flip_left_right(image)
     image = tf.image.random_flip_up_down(image)
-    image = tf.image.random_brightness(image, 0.15)
-    image = tf.image.random_saturation(image, 0.85, 1.15)
-    image = tf.image.random_contrast(image, 0.85, 1.15)
+    # Random 90-degree rotations (0, 1, 2, or 3 = 0°, 90°, 180°, 270°)
+    k = tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32)
+    image = tf.image.rot90(image, k=k)
+    image = tf.image.random_brightness(image, 0.2)
+    image = tf.image.random_saturation(image, 0.7, 1.3)
+    image = tf.image.random_contrast(image, 0.7, 1.3)
+    image = tf.image.random_hue(image, 0.05)
+    # Clip to valid range after augmentation
+    image = tf.clip_by_value(image, 0.0, 1.0)
     return image, label
 
 
@@ -112,7 +118,7 @@ def build_model(num_classes=NUM_CLASSES, image_size=IMAGE_SIZE):
 
     model.compile(
         optimizer=keras.optimizers.Adam(learning_rate=1e-3),
-        loss="sparse_categorical_crossentropy",
+        loss=keras.losses.SparseCategoricalCrossentropy(label_smoothing=0.1),
         metrics=["accuracy"],
     )
     model.summary()
@@ -132,7 +138,7 @@ def fine_tune_model(model):
 
     model.compile(
         optimizer=keras.optimizers.Adam(learning_rate=1e-4),
-        loss="sparse_categorical_crossentropy",
+        loss=keras.losses.SparseCategoricalCrossentropy(label_smoothing=0.1),
         metrics=["accuracy"],
     )
     print(f"Fine-tuning from layer {trainable_start} of {total_layers}")
@@ -252,6 +258,13 @@ def main():
 
     print("\n=== Stage 1: Training head (base frozen) ===")
     callbacks = [
+        keras.callbacks.ModelCheckpoint(
+            filepath=os.path.join(MODEL_DIR, "best_model.keras"),
+            monitor="val_loss",
+            save_best_only=True,
+            save_weights_only=False,
+            verbose=1,
+        ),
         keras.callbacks.ReduceLROnPlateau(
             monitor="val_loss", factor=0.5, patience=2, min_lr=1e-7, verbose=1
         ),
