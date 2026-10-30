@@ -112,6 +112,22 @@
   text-align: center;
   width: 100%;
   max-width: 600px;
+  white-space: pre-line;
+}
+
+.error-banner button {
+  margin-top: 0.5rem;
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.error-banner button:hover {
+  background: var(--accent-hover);
 }
 
 .app-footer {

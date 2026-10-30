@@ -42,10 +42,18 @@ function App() {
           setState("not_flower");
         }
       } catch (err) {
+        const errMsg =
+          err instanceof Error ? err.message : String(err);
+        const isImageInputError =
+          errMsg.includes("does not support image input") ||
+          errMsg.includes("Cannot read");
         setError(
-          err instanceof Error
-            ? err.message
-            : "Something went wrong during prediction."
+          isImageInputError
+            ? "Unable to process this image. Please make sure:\n" +
+              "  • The image is a clear photo of a flower\n" +
+              "  • The file is not corrupted\n" +
+              "  • Try refreshing the page (Ctrl+Shift+R) if the error persists"
+            : errMsg
         );
         setState("error");
       }
@@ -146,7 +154,19 @@ function App() {
         )}
 
         {state === "error" && error && (
-          <div className="error-banner">{error}</div>
+          <div className="error-banner">
+            {error}
+            {(error.includes("refresh") || error.includes("image input") || error.includes("Cannot read")) && (
+              <div>
+                <button
+                  onClick={() => window.location.reload()}
+                  style={{ marginTop: "0.5rem" }}
+                >
+                  Refresh Page
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </main>
 
