@@ -32,3 +32,4 @@ Thumbs.db
 Desktop.ini
 nul
 frontend/nul
+model/best_model.keras
