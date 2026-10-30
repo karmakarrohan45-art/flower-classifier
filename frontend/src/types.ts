@@ -17,4 +17,5 @@ export interface Prediction {
   confidence: number;
   allClasses: { className: string; confidence: number }[];
   metadata?: FlowerMetadata;
+  isFlower: boolean;
 }

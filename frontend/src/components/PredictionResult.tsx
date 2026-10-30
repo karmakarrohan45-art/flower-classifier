@@ -24,12 +24,22 @@ const PredictionResult: React.FC<PredictionResultProps> = ({
   const topClass = prediction.topClass;
   const allPredictions = prediction.allClasses || [];
   const meta = prediction.metadata;
+  const isFlower = prediction.isFlower;
 
   return (
     <div className="prediction-result">
       <div className="prediction-header">
         <h2>Prediction Result</h2>
       </div>
+
+      {!isFlower && (
+        <div className="warning-banner">
+          This doesn't look like a flower. The model can only identify
+          daisies, dandelions, roses, sunflowers, and tulips.
+          <br />
+          Try uploading an actual flower photo for better results.
+        </div>
+      )}
 
       <div className="prediction-main">
         <div className="predicted-name">{topClass}</div>

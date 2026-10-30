@@ -13,6 +13,7 @@ const METADATA_KEY_MAP: Record<string, string> = {
   sunflowers: "sunflower",
   tulips: "tulip",
 };
+const CONFIDENCE_THRESHOLD = 0.65;
 
 async function loadHtmlImage(dataUrl: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -125,6 +126,8 @@ export function useFlowerModel() {
       const metaKey = METADATA_KEY_MAP[topClassName] || topClassName;
       const flowerMeta = metadata[metaKey];
 
+      const isFlower = topConfidence / 100 >= CONFIDENCE_THRESHOLD;
+
       // Clean up tensors
       inputTensor.dispose();
       prediction.dispose();
@@ -134,6 +137,7 @@ export function useFlowerModel() {
         confidence: topConfidence,
         allClasses,
         metadata: flowerMeta,
+        isFlower,
       };
     },
     [model, labels, metadata]
