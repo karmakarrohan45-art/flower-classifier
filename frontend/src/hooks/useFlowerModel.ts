@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import * as tf from "@tensorflow/tfjs";
 import type { Prediction, FlowerMetadata } from "../types";
 
-const MODEL_URL = "/model/model.json";
+const MODEL_URL = "/model/model.json?v=2";
 const LABELS_URL = "/model/labels.json";
 const FLOWERS_URL = "/flowers.json";
 const IMAGE_SIZE = 180;
