@@ -34,10 +34,11 @@ const PredictionResult: React.FC<PredictionResultProps> = ({
 
       {!isFlower && (
         <div className="warning-banner">
-          This doesn't look like a flower. The model can only identify
-          daisies, dandelions, roses, sunflowers, and tulips.
+          <strong>Warning: This may not be a flower.</strong>
           <br />
-          Try uploading an actual flower photo for better results.
+          The model can only identify real flower photos.
+          Animals, humans, text/screenshots, and other objects
+          are not supported. Results may be inaccurate.
         </div>
       )}
 

@@ -114,14 +114,15 @@ function App() {
                 className="preview-image"
               />
             )}
-            <div className="error-banner">
-              <strong>This doesn't appear to be a flower.</strong>
-              <br />
-              The model can only identify: daisies, dandelions, roses,
-              sunflowers, and tulips.
-              <br />
-              Please upload a photo of an actual flower.
-            </div>
+          <div className="error-banner">
+            <strong>This doesn't appear to be a flower.</strong>
+            <br />
+            The model can only identify real flower photos:
+            daisies, dandelions, roses, sunflowers, and tulips.
+            <br />
+            Animals, humans, text/screenshots, and other objects
+            are not supported. Please upload a clear flower photo.
+          </div>
             <button className="reset-button" onClick={handleReset}>
               Upload Another Image
             </button>

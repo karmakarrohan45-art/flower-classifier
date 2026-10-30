@@ -13,7 +13,7 @@ const METADATA_KEY_MAP: Record<string, string> = {
   sunflowers: "sunflower",
   tulips: "tulip",
 };
-const CONFIDENCE_THRESHOLD = 0.65;
+const CONFIDENCE_THRESHOLD = 0.70;
 
 async function loadHtmlImage(dataUrl: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {

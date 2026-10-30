@@ -87,7 +87,12 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           Choose a photo
         </label>
         <p className="upload-hint">
-          Drag & drop an image, or click to browse
+          Drag & drop a flower image, or click to browse
+          <br />
+          <span className="hint-subtext">
+            Only real flower photos are accepted (no animals, humans,
+            text, or other objects)
+          </span>
         </p>
       </div>
       {preview && (

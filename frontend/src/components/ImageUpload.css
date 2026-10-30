@@ -63,6 +63,11 @@
   margin: 0;
 }
 
+.hint-subtext {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
 .upload-preview {
   max-width: 250px;
   max-height: 250px;
