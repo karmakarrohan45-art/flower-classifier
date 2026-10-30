@@ -6,7 +6,7 @@ import { useFlowerModel } from "./hooks/useFlowerModel";
 import type { Prediction } from "./types";
 import "./App.css";
 
-type AppState = "idle" | "uploaded" | "predicting" | "result" | "error";
+type AppState = "idle" | "uploaded" | "predicting" | "result" | "error" | "not_flower";
 
 function App() {
   const { model, labels, isLoadingModel, loadError, predict } = useFlowerModel();
@@ -36,7 +36,11 @@ function App() {
       try {
         const result = await predict(dataUrl);
         setPrediction(result);
-        setState("result");
+        if (result.isFlower) {
+          setState("result");
+        } else {
+          setState("not_flower");
+        }
       } catch (err) {
         setError(
           err instanceof Error
@@ -100,6 +104,27 @@ function App() {
               />
             )}
             <LoadingSpinner message="Analyzing your flower..." />
+          </div>
+        ) : state === "not_flower" ? (
+          <div className="not-flower-view">
+            {imageDataUrl && (
+              <img
+                src={imageDataUrl}
+                alt="Upload preview"
+                className="preview-image"
+              />
+            )}
+            <div className="error-banner">
+              <strong>This doesn't appear to be a flower.</strong>
+              <br />
+              The model can only identify: daisies, dandelions, roses,
+              sunflowers, and tulips.
+              <br />
+              Please upload a photo of an actual flower.
+            </div>
+            <button className="reset-button" onClick={handleReset}>
+              Upload Another Image
+            </button>
           </div>
         ) : (
           <div className="result-view">
