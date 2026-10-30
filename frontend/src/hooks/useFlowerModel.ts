@@ -13,14 +13,15 @@ const METADATA_KEY_MAP: Record<string, string> = {
   sunflowers: "sunflower",
   tulips: "tulip",
 };
-const CONFIDENCE_THRESHOLD = 0.70;
+const CONFIDENCE_THRESHOLD = 0.75;
+const MARGIN_THRESHOLD = 0.05;
 
 async function loadHtmlImage(dataUrl: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Failed to load image"));
+    img.onerror = () =>
+      reject(new Error("Failed to load image for prediction"));
     img.src = dataUrl;
   });
 }
@@ -29,7 +30,7 @@ function preprocessImage(img: HTMLImageElement): tf.Tensor {
   return tf.tidy(() => {
     const tensor = tf.browser.fromPixels(img);
     const channels = tensor.shape[2];
-    let rgb;
+    let rgb: tf.Tensor3D;
     if (channels === 4) {
       rgb = tensor.slice([0, 0, 0], [-1, -1, 3]);
     } else if (channels === 1) {
@@ -41,6 +42,10 @@ function preprocessImage(img: HTMLImageElement): tf.Tensor {
     const resized = tf.image.resizeBilinear(rgb, [IMAGE_SIZE, IMAGE_SIZE]);
     const expanded = resized.expandDims(0);
     const normalized = expanded.toFloat().div(255.0);
+    tensor.dispose();
+    rgb.dispose();
+    resized.dispose();
+    expanded.dispose();
     return normalized.clone();
   });
 }
@@ -96,50 +101,50 @@ export function useFlowerModel() {
         throw new Error("Model not loaded");
       }
 
-      // Wait for the uploaded image to finish loading in the browser
       const img = await loadHtmlImage(dataUrl);
-
-      // Preprocess on the GPU (resize + normalize)
       const inputTensor = preprocessImage(img);
 
       let output: tf.Tensor | tf.Tensor[];
       try {
         output = await model.executeAsync({ x: inputTensor });
-      } catch (inferErr) {
-        console.warn("executeAsync failed, trying predict:", inferErr);
+      } catch (executeErr) {
+        console.warn(
+          "executeAsync failed, falling back to predict:",
+          executeErr
+        );
         output = model.predict(inputTensor) as tf.Tensor | tf.Tensor[];
       }
       const predictionTensor = Array.isArray(output) ? output[0] : output;
 
       const predictionData = Array.from(await predictionTensor.data());
 
-      // Sort results by confidence (descending)
       const sortedIndices = predictionData
         .map((val, idx) => ({ idx, val }))
         .sort((a, b) => b.val - a.val);
 
       const topIdx = sortedIndices[0].idx;
       const topClassName = labels[topIdx];
-      const topConfidence = predictionData[topIdx] * 100;
+      const topConfidence = predictionData[topIdx];
+      const secondConfidence = sortedIndices[1]?.val || 0;
+      const margin = topConfidence - secondConfidence;
+      const isFlower =
+        topConfidence >= CONFIDENCE_THRESHOLD &&
+        margin >= MARGIN_THRESHOLD;
 
       const allClasses = sortedIndices.map((item) => ({
         className: labels[item.idx],
         confidence: item.val * 100,
       }));
 
-      // Look up flower metadata from flowers.csv (converted to JSON)
       const metaKey = METADATA_KEY_MAP[topClassName] || topClassName;
       const flowerMeta = metadata[metaKey];
 
-      const isFlower = topConfidence / 100 >= CONFIDENCE_THRESHOLD;
-
-      // Clean up tensors
       inputTensor.dispose();
       predictionTensor.dispose();
 
       return {
         topClass: flowerMeta?.name || topClassName,
-        confidence: topConfidence,
+        confidence: topConfidence * 100,
         allClasses,
         metadata: flowerMeta,
         isFlower,
