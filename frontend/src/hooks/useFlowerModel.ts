@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import * as tf from "@tensorflow/tfjs";
 import type { Prediction, FlowerMetadata } from "../types";
 
-const MODEL_URL = "/model/model.json?v=3";
+const MODEL_URL = "/model/model.json?v=4";
 const LABELS_URL = "/model/labels.json";
 const FLOWERS_URL = "/flowers.json";
 const IMAGE_SIZE = 180;
@@ -104,16 +104,7 @@ export function useFlowerModel() {
       const img = await loadHtmlImage(dataUrl);
       const inputTensor = preprocessImage(img);
 
-      let output: tf.Tensor | tf.Tensor[];
-      try {
-        output = await model.executeAsync({ x: inputTensor });
-      } catch (executeErr) {
-        console.warn(
-          "executeAsync failed, falling back to predict:",
-          executeErr
-        );
-        output = model.predict(inputTensor) as tf.Tensor | tf.Tensor[];
-      }
+      const output = await model.executeAsync({ x: inputTensor });
       const predictionTensor = Array.isArray(output) ? output[0] : output;
 
       const predictionData = Array.from(await predictionTensor.data());
@@ -128,6 +119,7 @@ export function useFlowerModel() {
       const secondConfidence = sortedIndices[1]?.val || 0;
       const margin = topConfidence - secondConfidence;
       const isFlower =
+        topClassName !== "not_flower" &&
         topConfidence >= CONFIDENCE_THRESHOLD &&
         margin >= MARGIN_THRESHOLD;
 

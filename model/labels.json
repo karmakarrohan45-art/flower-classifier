@@ -1,9 +1,1 @@
-{
-  "labels": [
-    "dandelion",
-    "daisy",
-    "tulips",
-    "sunflowers",
-    "roses"
-  ]
-}
+{"labels": ["dandelion", "daisy", "tulips", "sunflowers", "roses", "not_flower"]}

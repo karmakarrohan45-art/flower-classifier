@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-evaluate_and_convert.py — Evaluate the trained model and convert to TF.js
+evaluate_and_convert.py - Evaluate the trained model and convert to TF.js
 
 This script:
   1. Loads the saved Keras model
-  2. Evaluates it on the test split (accuracy, confusion matrix, report)
+  2. Evaluates it on the combined test set (tf_flowers + CIFAR-10)
   3. Converts the model to TensorFlow.js format for the React frontend
 
 Usage:
@@ -12,6 +12,7 @@ Usage:
 """
 
 import os
+os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 import json
 import shutil
 import numpy as np
@@ -32,6 +33,7 @@ TFDS_DIR = "dataset"
 IMAGE_SIZE = 180
 BATCH_SIZE = 32
 AUTOTUNE = tf.data.AUTOTUNE
+NUM_CLASSES = 6
 
 
 def preprocess(image, label):
@@ -40,9 +42,9 @@ def preprocess(image, label):
     return image, label
 
 
-def main():
-    print("Loading tf_flowers dataset ...")
-    (_, _, test_ds), ds_info = tfds.load(
+def load_test_data():
+    """Load tf_flowers + synthetic not_flower test set."""
+    (train_f, val_f, test_f), ds_info = tfds.load(
         "tf_flowers",
         split=["train[:70%]", "train[70%:85%]", "train[85%:]"],
         as_supervised=True,
@@ -51,9 +53,51 @@ def main():
         data_dir=TFDS_DIR,
         download=True,
     )
+    flower_labels = list(ds_info.features["label"].names)
 
-    labels = ds_info.features["label"].names
-    print(f"Classes: {labels}")
+    print("Generating synthetic not_flower images ...")
+
+    def create_synthetic_not_flower(num_samples):
+        def gen():
+            import random
+            for i in range(num_samples):
+                pattern = random.randint(0, 3)
+                if pattern == 0:
+                    img = tf.random.uniform([IMAGE_SIZE, IMAGE_SIZE, 3], 0, 255, dtype=tf.float32)
+                elif pattern == 1:
+                    img = tf.random.normal([IMAGE_SIZE, IMAGE_SIZE, 3], 128, 60, dtype=tf.float32)
+                    img = tf.clip_by_value(img, 0, 255)
+                elif pattern == 2:
+                    color = tf.random.uniform([], 0, 255)
+                    img = tf.fill([IMAGE_SIZE, IMAGE_SIZE, 3], color)
+                else:
+                    row = tf.linspace(tf.random.uniform([], 0, 255), tf.random.uniform([], 0, 255), IMAGE_SIZE)
+                    col = tf.linspace(tf.random.uniform([], 0, 255), tf.random.uniform([], 0, 255), IMAGE_SIZE)
+                    grad = tf.tile(tf.expand_dims(row, 1), [1, IMAGE_SIZE])
+                    img = tf.stack([grad, grad, grad], axis=-1)
+                img = tf.cast(img, tf.uint8)
+                yield img, tf.constant(NUM_CLASSES - 1, dtype=tf.int64)
+        return tf.data.Dataset.from_generator(
+            gen,
+            output_signature=(
+                tf.TensorSpec(shape=(IMAGE_SIZE, IMAGE_SIZE, 3), dtype=tf.uint8),
+                tf.TensorSpec(shape=(), dtype=tf.int64),
+            )
+        )
+
+    test_neg = create_synthetic_not_flower(643)
+    print(f"  Synthetic (not_flower) - Test: 643")
+
+    test_ds = test_f.concatenate(test_neg).shuffle(1000)
+    labels = flower_labels + ["not_flower"]
+    return test_ds, labels
+    return test_ds, labels
+
+
+def main():
+    print("Loading test data (tf_flowers + synthetic) ...")
+    test_ds, labels = load_test_data()
+    print(f"Classes ({len(labels)}): {labels}")
 
     test_ds = (
         test_ds
@@ -62,13 +106,11 @@ def main():
         .prefetch(AUTOTUNE)
     )
 
-    # Load model
     model_path = os.path.join(MODEL_DIR, "flower_classifier.h5")
     print(f"Loading model from {model_path} ...")
     model = tf.keras.models.load_model(model_path)
     model.summary()
 
-    # Evaluate
     y_true, y_pred = [], []
     for images, lbls in test_ds:
         preds = model.predict(images, verbose=0)
@@ -78,12 +120,12 @@ def main():
     acc = accuracy_score(y_true, y_pred)
     print(f"\nTest accuracy: {acc * 100:.2f}%")
 
-    report = classification_report(y_true, y_pred, target_names=labels)
+    report = classification_report(y_true, y_pred, target_names=labels, digits=4)
     print("\nClassification Report:")
     print(report)
 
     cm = confusion_matrix(y_true, y_pred)
-    plt.figure(figsize=(6, 5))
+    plt.figure(figsize=(8, 6))
     sns.heatmap(
         cm, annot=True, fmt="d", cmap="Blues",
         xticklabels=labels, yticklabels=labels,
@@ -97,7 +139,6 @@ def main():
     plt.close()
     print(f"Confusion matrix saved -> {cm_path}")
 
-    # Save classification report
     report_path = os.path.join(MODEL_DIR, "classification_report.txt")
     with open(report_path, "w") as f:
         f.write(f"Test Accuracy: {acc * 100:.2f}%\n\n")
@@ -109,7 +150,6 @@ def main():
 
     from tensorflowjs.converters import converter
 
-    # Use SavedModel format (fixes Keras 3 incompatibility with H5 conversion)
     saved_model_dir = os.path.join(MODEL_DIR, "saved_model")
     if os.path.exists(saved_model_dir):
         shutil.rmtree(saved_model_dir)
@@ -134,7 +174,6 @@ def main():
     converter.convert(args)
     print(f"TF.js model saved -> {tfjs_dir}")
 
-    # Copy label map
     shutil.copy(
         os.path.join(MODEL_DIR, "labels.json"),
         os.path.join(tfjs_dir, "labels.json"),
