@@ -12,6 +12,7 @@ const METADATA_KEY_MAP: Record<string, string> = {
   roses: "rose",
   sunflowers: "sunflower",
   tulips: "tulip",
+  not_flower: "not_flower",
 };
 const CONFIDENCE_THRESHOLD = 0.65;
 const MARGIN_THRESHOLD = 0.04;

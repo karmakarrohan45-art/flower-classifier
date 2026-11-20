@@ -63,5 +63,18 @@
     "perfumes": "0",
     "medicine": "1",
     "average number of petals": "3-7"
+  },
+  "not_flower": {
+    "name": "Not a Flower",
+    "scientific_name": "N/A",
+    "height (cm)": "N/A",
+    "longevity (years)": "N/A",
+    "place of origin": "N/A",
+    "color": "N/A",
+    "climate": "N/A",
+    "cut flowers": "0",
+    "perfumes": "0",
+    "medicine": "0",
+    "average number of petals": "N/A"
   }
 }
