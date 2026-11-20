@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import * as tf from "@tensorflow/tfjs";
 import type { Prediction, FlowerMetadata } from "../types";
 
-const MODEL_URL = "/model/model.json?v=4";
+const MODEL_URL = "/model/model.json?v=5";
 const LABELS_URL = "/model/labels.json";
 const FLOWERS_URL = "/flowers.json";
 const IMAGE_SIZE = 180;
@@ -14,8 +14,9 @@ const METADATA_KEY_MAP: Record<string, string> = {
   tulips: "tulip",
   not_flower: "not_flower",
 };
-const CONFIDENCE_THRESHOLD = 0.65;
-const MARGIN_THRESHOLD = 0.04;
+const CONFIDENCE_THRESHOLD = 0.85;
+const MARGIN_THRESHOLD = 0.20;
+const NOT_FLOWER_REJECT_THRESHOLD = 0.15;
 
 async function loadHtmlImage(dataUrl: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -119,8 +120,11 @@ export function useFlowerModel() {
       const topConfidence = predictionData[topIdx];
       const secondConfidence = sortedIndices[1]?.val || 0;
       const margin = topConfidence - secondConfidence;
+      const notFlowerIdx = labels.indexOf("not_flower");
+      const notFlowerConfidence = notFlowerIdx >= 0 ? predictionData[notFlowerIdx] : 0;
       const isFlower =
         topClassName !== "not_flower" &&
+        notFlowerConfidence < NOT_FLOWER_REJECT_THRESHOLD &&
         topConfidence >= CONFIDENCE_THRESHOLD &&
         margin >= MARGIN_THRESHOLD;
 
