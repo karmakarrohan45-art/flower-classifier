@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import * as tf from "@tensorflow/tfjs";
+import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import type { Prediction, FlowerMetadata } from "../types";
 
-const MODEL_URL = "/model/model.json?v=5";
+const MODEL_URL = "/model/model.json?v=6";
 const LABELS_URL = "/model/labels.json";
 const FLOWERS_URL = "/flowers.json";
 const IMAGE_SIZE = 180;
@@ -52,8 +53,11 @@ function preprocessImage(img: HTMLImageElement): tf.Tensor {
   });
 }
 
+const PERSON_REJECT_THRESHOLD = 0.45;
+
 export function useFlowerModel() {
   const [model, setModel] = useState<tf.GraphModel | null>(null);
+  const [detector, setDetector] = useState<cocoSsd.ObjectDetection | null>(null);
   const [labels, setLabels] = useState<string[] | null>(null);
   const [metadata, setMetadata] = useState<Record<string, FlowerMetadata>>({});
   const [isLoadingModel, setIsLoadingModel] = useState(true);
@@ -71,12 +75,14 @@ export function useFlowerModel() {
       }
 
       try {
-        const [loadedModel, labelRes, metaRes] = await Promise.all([
+        const [loadedModel, loadedDetector, labelRes, metaRes] = await Promise.all([
           tf.loadGraphModel(MODEL_URL),
+          cocoSsd.load(),
           fetch(LABELS_URL),
           fetch(FLOWERS_URL),
         ]);
         setModel(loadedModel);
+        setDetector(loadedDetector);
 
         const labelData = await labelRes.json();
         setLabels(labelData.labels);
@@ -104,6 +110,30 @@ export function useFlowerModel() {
       }
 
       const img = await loadHtmlImage(dataUrl);
+
+      if (detector) {
+        try {
+          const detections = await detector.detect(img);
+          const person = detections.find(
+            (d) => d.class === "person" && d.score >= PERSON_REJECT_THRESHOLD
+          );
+          if (person) {
+            return {
+              topClass: "Not a Flower",
+              confidence: person.score * 100,
+              allClasses: labels.map((name) => ({
+                className: name,
+                confidence: name === "not_flower" ? person.score * 100 : 0,
+              })),
+              metadata: metadata["not_flower"],
+              isFlower: false,
+            };
+          }
+        } catch (e) {
+          console.warn("Person detection failed, continuing:", e);
+        }
+      }
+
       const inputTensor = preprocessImage(img);
 
       const output = await model.executeAsync({ x: inputTensor });
@@ -147,7 +177,7 @@ export function useFlowerModel() {
         isFlower,
       };
     },
-    [model, labels, metadata]
+    [model, detector, labels, metadata]
   );
 
   return { model, labels, metadata, isLoadingModel, loadError, predict };
